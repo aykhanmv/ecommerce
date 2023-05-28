@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>EShopper - Login</title>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header Start -->
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Favorite products</h1>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<!-- Cart Start -->
+<div class="container-fluid pt-5">
+    <div class="row px-xl-5 justify-content-center">
+        <div class="col-lg-5 table-responsive mb-5">
+            <table class="table table-bordered text-center mb-0">
+                <thead class="bg-secondary text-dark">
+                    <tr>
+                        <th>Products</th>
+                        <th>Price</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody class="align-middle">
+                    <tr>
+                        <td class="align-middle"><img src="img/pr-1.webp" alt="" style="width: 50px;"> Colorful Stylish
+                            Shirt 1</td>
+                        <td class="align-middle">$150</td>
+                        <td class="align-middle"><button class="btn btn-sm btn-primary"><i
+                                    class="fa fa-times"></i></button></td>
+                    </tr>
+                    <tr>
+                        <td class="align-middle"><img src="img/pr-3.webp" alt="" style="width: 50px;"> Colorful Stylish
+                            Shirt 2</td>
+                        <td class="align-middle">$140</td>
+                        <td class="align-middle"><button class="btn btn-sm btn-primary"><i
+                                    class="fa fa-times"></i></button></td>
+                    </tr>
+                    <tr>
+                        <td class="align-middle"><img src="img/pr-2.webp" alt="" style="width: 50px;"> Colorful Stylish
+                            Shirt 3</td>
+                        <td class="align-middle">$350</td>
+                        <td class="align-middle"><button class="btn btn-sm btn-primary"><i
+                                    class="fa fa-times"></i></button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- Cart End -->
+{% endblock %}
