@@ -1,11 +1,13 @@
 from flask import Flask, render_template
+
 app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+mysqlconnector://admin:admin@127.0.0.1:3306/ecommerce'
+app.config["SECRET_KEY"] = 'project'
 
-# For controller routes
 from controllers import *
-
-# For creating tables
 from models import *
-
-# For third party packages
 from extensions import *
+
+if __name__ == '__main__':
+    app.init_app(db)
+    app.init_app(migrate)
