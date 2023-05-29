@@ -51,6 +51,12 @@
                     </div>
                     {% endif %}
 
+                    {% if error_message['has_error'] == 0 %}
+                    <div class="alert alert-success" role="alert">
+                        You have successfully created a user! Go to <a  style="color: blue; text-decoration: underline;" href="{{ url_for('login') }}">login</a> page.
+                      </div>
+                    {% endif %}
+                    
                     <div class="d-flex justify-content-center">
                         <button class="btn btn-primary py-2 px-4" type="submit" id="sendMessageButton">Register</button>
                     </div>
@@ -60,4 +66,18 @@
     </div>
 </div>
 <!-- Contact End -->
+<script>
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const successParam = urlParams.get('success');
+
+        if (successParam === 'true') {
+            // Open a new window with the pop-up message
+            window.open('', 'popup', 'width=300,height=200');
+            const popupWindow = window.open('', 'popup');
+            popupWindow.document.write('<p>You have successfully created a new user. Go to the login page to login.</p>');
+        }
+    });
+</script>
+
 {% endblock %}

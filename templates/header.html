@@ -113,9 +113,24 @@
             <a href="#" class="nav-item nav-link">Shop Detail</a>
             <a href="{{ url_for('contact') }}" class="nav-item nav-link active">Contact</a>
           </div>
+
           <div class="navbar-nav ml-auto py-0">
-            <a href="{{ url_for('login') }}" class="nav-item nav-link">Login</a>
-            <a href="{{ url_for('register') }}" class="nav-item nav-link">Register</a>
+            {% if current_user.is_authenticated %}
+            <a href="#" class="btn border">
+              <i class="fas fa-solid fa-user" style="color: #d19c97;"></i>
+              <span class="badge">{{ current_user.full_name }}</span>
+            </a>
+            <a style="margin-left: 5px;" href="{{ url_for('logout') }}" class="btn border">
+              <i class="fas fa-solid fa-sign-out" style="color: #d19c97;"></i>
+              <span class="badge">Log Out</span>
+            </a>
+            {% else %}
+            <div class="navbar-nav ml-auto py-0">
+              <a href="{{ url_for('login') }}" class="nav-item nav-link">Login</a>
+              <a href="{{ url_for('register') }}" class="nav-item nav-link">Register</a>
+            </div>
+            {% endif %}
+
           </div>
         </div>
       </nav>
