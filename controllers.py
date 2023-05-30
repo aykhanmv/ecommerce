@@ -301,3 +301,44 @@ def contact():
                 return render_template('contact.html', contactForm = contactForm, newstellerForm = newstellerForm, response = response)
 
     return render_template('contact.html', contactForm = contactForm, newstellerForm = newstellerForm, response = response)
+
+@app.route("/detail/", methods = ['GET', 'POST'])
+def detail():
+    newstellerForm = NewsTellerForm()
+    response = {
+        'has_response': -1,
+        'form' : '',
+        'response_content': []
+    }
+    if request.method == 'POST' and 'newsteller' in request.form:
+            newstellerForm = NewsTellerForm(request.form)
+            if newstellerForm.validate_on_submit():
+                subscriber = NewsTeller (
+                    full_name = newstellerForm.full_name.data,
+                    email = newstellerForm.email.data,
+                )
+                subscriber.save()
+                response['has_response'] = 0
+                response['form'] = 'newsteller'
+                response['response_content'].append(responses['subscribed'])
+                return render_template('detail.html', newstellerForm = newstellerForm, response = response)
+            else:
+                if not newstellerForm.full_name.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['fname'])
+                if not newstellerForm.email.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['email'])
+                if newstellerForm.email.data:
+                    try:
+                        validate_email(newstellerForm.email.data)
+                    except EmailNotValidError as e:
+                        response['has_response'] = 1
+                        response['form'] = 'newsteller'
+                        response['response_content'].append(responses['invalid_email'])
+                    
+                return render_template('detail.html', newstellerForm = newstellerForm, response = response)
+
+    return render_template('detail.html', newstellerForm = newstellerForm, response = response)
