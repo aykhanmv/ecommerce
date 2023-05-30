@@ -1,84 +1,210 @@
 from app import app
 from flask import render_template, request, redirect, url_for
-from forms import RegisterForm, LoginForm
-from models import User
 from email_validator import validate_email, EmailNotValidError
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, current_user
+from sqlalchemy.exc import IntegrityError
 
-@app.route("/")
+from forms import RegisterForm, LoginForm, ContactForm, NewsTellerForm
+from models import User, Contact, NewsTeller
+from response_contet import responses
+
+@app.route("/", methods = ['GET', 'POST'])
 def home():
-    return render_template('home.html')
+    newstellerForm = NewsTellerForm()
+    response = {
+        'has_response': -1,
+        'form' : '',
+        'response_content': []
+    }
+    if request.method == 'POST' and 'newsteller' in request.form:
+            newstellerForm = NewsTellerForm(request.form)
+            if newstellerForm.validate_on_submit():
+                subscriber = NewsTeller (
+                    full_name = newstellerForm.full_name.data,
+                    email = newstellerForm.email.data,
+                )
+                subscriber.save()
+                response['has_response'] = 0
+                response['form'] = 'newsteller'
+                response['response_content'].append(responses['subscribed'])
+                return render_template('home.html', newstellerForm = newstellerForm, response = response)
+            else:
+                if not newstellerForm.full_name.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['fname'])
+                if not newstellerForm.email.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['email'])
+                if newstellerForm.email.data:
+                    try:
+                        validate_email(newstellerForm.email.data)
+                    except EmailNotValidError as e:
+                        response['has_response'] = 1
+                        response['form'] = 'newsteller'
+                        response['response_content'].append(responses['invalid_email'])
+                    
+                return render_template('home.html', newstellerForm = newstellerForm, response = response)
+
+    return render_template('home.html', newstellerForm = newstellerForm, response = response)
 
 @app.route("/register/",  methods = ['GET', 'POST'])
 def register():
-    form = RegisterForm()
-    error_message = {
-        'has_error': -1,
-        'error_content': []
+    if current_user.is_authenticated:
+        return redirect(url_for("home.html"))
+    
+    registerForm = RegisterForm()
+    newstellerForm = NewsTellerForm()
+
+    response = {
+        'has_response': -1,
+        'form' : '',
+        'response_content': []
     }
-    # If method is 'POST' the variable "form" will take data filled by the user via "Register" form.
+
     if request.method == 'POST':
-        form = RegisterForm(request.form)
+        if 'register' in request.form:
 
-        # To check if the form is filled properly based on requisitions
-        if form.validate_on_submit():
-            user = User(
-                full_name = form.full_name.data,
-                email = form.email.data,
-                password = generate_password_hash(form.password.data)
-            )
-            user.save()
-            error_message['has_error'] = 0
-            return render_template('register.html', form = form, error_message = error_message)
+            registerForm = RegisterForm(request.form)
+            if registerForm.validate_on_submit():
+                try: 
+                    user = User(
+                        full_name = registerForm.full_name.data,
+                        email = registerForm.email.data,
+                        password = generate_password_hash(registerForm.password.data)
+                    )
+                    user.save()
+                    response['has_response'] = 0
+                    response['form'] = 'register'
+                    return render_template('register.html', registerForm = registerForm, newstellerForm = newstellerForm, response = response)
+                except IntegrityError as err:
+                    response['has_response'] = 1
+                    response['form'] = 'register'
+                    response['response_content'].append(responses['non_unique_email'])
+                    return render_template('register.html', registerForm = registerForm, newstellerForm = newstellerForm,  response = response)
 
-        else:
-            if not form.full_name.data:
-                error_message['has_error'] = 1
-                error_message['error_content'].append('You have not filled your Full Name')
-            if not form.email.data:
-                error_message['has_error'] = 1
-                error_message['error_content'].append('You have not filled your Email')
-            if not form.password.data:
-                error_message['has_error'] = 1
-                error_message['error_content'].append('You have not filled your Password')         
-            if not form.password_confirmation.data:
-                error_message['has_error'] = 1
-                error_message['error_content'].append('You have not filled your Password Confirmation') 
 
-            if form.password.data != form.password_confirmation.data:
-                error_message['has_error'] = 1
-                error_message['error_content'].append('Passwords do not match')
-            if form.email.data:
-                try:
-                    validate_email(form.email.data)
-                except EmailNotValidError as e:
-                    error_message['has_error'] = 1
-                    error_message['error_content'].append('The email you entered is not valid')
-                
-            return render_template('register.html', form = form, error_message = error_message)
-            
-    return render_template('register.html', form = form, error_message = error_message)
+            else:
+                if not registerForm.full_name.data:
+                    response['has_response'] = 1
+                    response['form'] = 'register'
+                    response['response_content'].append(responses['fname'])
+                if not registerForm.email.data:
+                    response['has_response'] = 1
+                    response['form'] = 'register'
+                    response['response_content'].append(responses['email'])
+                if not registerForm.password.data:
+                    response['has_response'] = 1
+                    response['form'] = 'register'
+                    response['response_content'].append(responses['passwd'])         
+                if not registerForm.password_confirmation.data:
+                    response['has_response'] = 1
+                    response['form'] = 'register'
+                    response['response_content'].append(responses['passwd_conf']) 
+                if registerForm.password.data != registerForm.password_confirmation.data:
+                    response['has_response'] = 1
+                    response['form'] = 'register'
+                    response['response_content'].append(responses['unmatching_passwd'])
+                if registerForm.email.data:
+                    try:
+                        validate_email(registerForm.email.data)
+                    except EmailNotValidError as e:
+                        response['has_response'] = 1
+                        response['form'] = 'register'
+                        response['response_content'].append(responses['invalid_email'])
+                    
+                return render_template('register.html', registerForm = registerForm, newstellerForm = newstellerForm,  response = response)
+    
+        elif 'newsteller' in request.form:
+            newstellerForm = NewsTellerForm(request.form)
+            if newstellerForm.validate_on_submit():
+                subscriber = NewsTeller (
+                    full_name = newstellerForm.full_name.data,
+                    email = newstellerForm.email.data,
+                )
+                subscriber.save()
+                response['has_response'] = 0
+                response['form'] = 'newsteller'
+                response['response_content'].append(responses['subscribed'])
+                return render_template('register.html', registerForm = registerForm, newstellerForm = newstellerForm, response = response)
+            else:
+                if not newstellerForm.full_name.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['fname'])
+                if not newstellerForm.email.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['email'])
+                if newstellerForm.email.data:
+                    try:
+                        validate_email(newstellerForm.email.data)
+                    except EmailNotValidError as e:
+                        response['has_response'] = 1
+                        response['form'] = 'newsteller'
+                        response['response_content'].append(responses['invalid_email'])
+                    
+                return render_template('register.html', registerForm = registerForm, newstellerForm = newstellerForm, response = response)
+
+    return render_template('register.html', registerForm = registerForm, newstellerForm = newstellerForm,  response = response)
 
 @app.route("/login/", methods = ['GET', 'POST'])
 def login():
-    form = LoginForm()
-    error_message = {
-        'has_error': -1,
-        'error_content': []
+    loginForm = LoginForm()
+    newstellerForm = NewsTellerForm()
+
+    response = {
+        'has_response': -1,
+        'form' : '',
+        'response_content': []
     }
+
     if request.method == 'POST':
-        user = User.query.filter_by( email = form.email.data ).first()
-        if user and check_password_hash(user.password, form.password.data):
-            login_user(user)
-            return render_template('home.html', form = form)
-        else:
-            error_message['has_error'] = 1
-            error_message['error_content'].append('Invalid username or password. Please try again.')
+        if 'login' in request.form:
+            user = User.query.filter_by( email = loginForm.email.data ).first()
+            if user and check_password_hash(user.password, loginForm.password.data):
+                login_user(user)
+                return render_template('home.html', newstellerForm = newstellerForm, response = response)
+            else:
+                response['has_response'] = 1
+                response['form'] = 'login'
+                response['response_content'].append(responses['invalid_user'])
+                return render_template('login.html', loginForm = loginForm, newstellerForm = newstellerForm, response = response)
+        
+        elif 'newsteller' in request.form:
+            newstellerForm = NewsTellerForm(request.form)
+            if newstellerForm.validate_on_submit():
+                subscriber = NewsTeller (
+                    full_name = newstellerForm.full_name.data,
+                    email = newstellerForm.email.data,
+                )
+                subscriber.save()
+                response['has_response'] = 0
+                response['form'] = 'newsteller'
+                response['response_content'].append(responses['subscribed'])
+                return render_template('login.html', loginForm = loginForm, newstellerForm = newstellerForm, response = response)
+            else:
+                if not newstellerForm.full_name.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['fname'])
+                if not newstellerForm.email.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['email'])
+                if newstellerForm.email.data:
+                    try:
+                        validate_email(newstellerForm.email.data)
+                    except EmailNotValidError as e:
+                        response['has_response'] = 1
+                        response['form'] = 'newsteller'
+                        response['response_content'].append(responses['invalid_email'])
+                    
+                return render_template('login.html', loginForm = loginForm, newstellerForm = newstellerForm, response = response)
 
-            return render_template('login.html', form = form, error_message = error_message)
-
-    return render_template('login.html', form = form, error_message = error_message)
+    return render_template('login.html', loginForm = loginForm, newstellerForm = newstellerForm, response = response)
 
 @app.route("/logout/")
 def logout():
@@ -89,6 +215,89 @@ def logout():
 def favorites():
     return render_template('favorites.html')
 
-@app.route("/contact/")
+@app.route("/contact/", methods = ['GET', 'POST'])
 def contact():
-    return render_template('contact.html')
+    contactForm = ContactForm()
+    newstellerForm = NewsTellerForm()
+
+    response = {
+        'has_response': -1,
+        'form' : '',
+        'response_content': []
+    }
+
+    if request.method == 'POST':
+        if 'contact' in request.form:
+            contactForm = ContactForm(request.form)
+
+            if contactForm.validate_on_submit():
+                contact = Contact (
+                    full_name = contactForm.full_name.data,
+                    email = contactForm.email.data,
+                    subject = contactForm.subject.data,
+                    message = contactForm.message.data
+                )
+                contact.save()
+                response['has_response'] = 0
+                response['form'] = 'contact'
+                response['response_content'].append(responses['sent_message'])
+                return render_template('contact.html', contactForm = contactForm, newstellerForm = newstellerForm, response = response)
+
+            else:
+                if not contactForm.full_name.data:
+                    response['has_response'] = 1
+                    response['form'] = 'contact'
+                    response['response_content'].append(responses['fname'])
+                if not contactForm.email.data:
+                    response['has_response'] = 1
+                    response['form'] = 'contact'
+                    response['response_content'].append(responses['email'])
+                if not contactForm.subject.data:
+                    response['has_response'] = 1
+                    response['form'] = 'contact'
+                    response['response_content'].append(responses['subject'])         
+                if not contactForm.message.data:
+                    response['has_response'] = 1
+                    response['form'] = 'contact'
+                    response['response_content'].append(responses['message']) 
+                if contactForm.email.data:
+                    try:
+                        validate_email(contactForm.email.data)
+                    except EmailNotValidError as e:
+                        response['has_response'] = 1
+                        response['form'] = 'contact'
+                        response['response_content'].append(responses['invalid_email'])
+                return render_template('contact.html', contactForm = contactForm, newstellerForm = newstellerForm, response = response)
+            
+        elif 'newsteller' in request.form:
+            newstellerForm = NewsTellerForm(request.form)
+            if newstellerForm.validate_on_submit():
+                subscriber = NewsTeller (
+                    full_name = newstellerForm.full_name.data,
+                    email = newstellerForm.email.data,
+                )
+                subscriber.save()
+                response['has_response'] = 0
+                response['form'] = 'newsteller'
+                response['response_content'].append(responses['subscribed'])
+                return render_template('contact.html', contactForm = contactForm, newstellerForm = newstellerForm, response = response)
+            else:
+                if not newstellerForm.full_name.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['fname'])
+                if not newstellerForm.email.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['email'])
+                if newstellerForm.email.data:
+                    try:
+                        validate_email(newstellerForm.email.data)
+                    except EmailNotValidError as e:
+                        response['has_response'] = 1
+                        response['form'] = 'newsteller'
+                        response['response_content'].append(responses['invalid_email'])
+                    
+                return render_template('contact.html', contactForm = contactForm, newstellerForm = newstellerForm, response = response)
+
+    return render_template('contact.html', contactForm = contactForm, newstellerForm = newstellerForm, response = response)
