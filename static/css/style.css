@@ -6,18 +6,58 @@
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  */
 
-.popup {
-  background-color: #ffffff;
-  width: 420px;
-  padding: 30px 40px;
+.flash-container {
+  position: relative;
+}
+
+#flash-div {
   position: absolute;
-  transform: translate(-50%, -50%);
-  left: 50%;
-  top: 50%;
-  border-radius: 8px;
+  top: 0;
+  right: 0;
+  margin-right: 20px;
+  margin-top: 220px;
+}
+
+.alert {
+  width: auto;
+  height: auto;
+  line-height: 1.8;
+  border-radius: 5px;
+  cursor: hand;
+  cursor: pointer;
+  font-family: sans-serif;
+  font-weight: 400;
+}
+
+.alertCheckbox {
   display: none;
-  font-family: “Poppins”, sans-serif;
+}
+
+:checked+.alert {
+  display: none;
+}
+
+.alertText {
+  display: table;
+  margin: 0 auto;
   text-align: center;
+  font-size: 16px;
+}
+
+.alertClose {
+  float: right;
+  padding-top: 5px;
+  font-size: 10px;
+}
+
+.clear {
+  clear: both;
+}
+
+.warning {
+  background-color: #fdf7df;
+  border: 1px solid #FEEC6F;
+  color: #C9971C;
 }
 
 :root {

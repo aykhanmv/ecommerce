@@ -1,13 +1,24 @@
 from app import app
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, flash
 from email_validator import validate_email, EmailNotValidError
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy.exc import IntegrityError
 
 from forms import RegisterForm, LoginForm, ContactForm, NewsTellerForm
 from models import User, Contact, NewsTeller
 from response_contet import responses
+
+
+# List of routes that require authentication
+auth_required_routes = ['/admin/', '/favorites/']
+
+@app.before_request
+def check_authentication():
+    if request.path in auth_required_routes:
+        if not current_user.is_authenticated:
+            flash('You have to log in to visit that page!')
+            return redirect(url_for('login'))
 
 @app.route("/", methods = ['GET', 'POST'])
 def home():
@@ -53,6 +64,7 @@ def home():
 @app.route("/register/",  methods = ['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
+        flash("You are already logged in! Log out to create a new account.")
         return redirect(url_for("home.html"))
     
     registerForm = RegisterForm()
@@ -152,6 +164,9 @@ def register():
 
 @app.route("/login/", methods = ['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        flash("You are already logged in! Log in with a new account.")
+        return redirect(url_for("home"))
     loginForm = LoginForm()
     newstellerForm = NewsTellerForm()
 
@@ -211,9 +226,46 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-@app.route("/favorites/")
+@app.route("/favorites/", methods = ['GET', 'POST'])
 def favorites():
-    return render_template('favorites.html')
+    newstellerForm = NewsTellerForm()
+    response = {
+        'has_response': -1,
+        'form' : '',
+        'response_content': []
+    }
+    if request.method == 'POST' and 'newsteller' in request.form:
+            newstellerForm = NewsTellerForm(request.form)
+            if newstellerForm.validate_on_submit():
+                subscriber = NewsTeller (
+                    full_name = newstellerForm.full_name.data,
+                    email = newstellerForm.email.data,
+                )
+                subscriber.save()
+                response['has_response'] = 0
+                response['form'] = 'newsteller'
+                response['response_content'].append(responses['subscribed'])
+                return render_template('favorites.html', newstellerForm = newstellerForm, response = response)
+            else:
+                if not newstellerForm.full_name.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['fname'])
+                if not newstellerForm.email.data:
+                    response['has_response'] = 1
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['email'])
+                if newstellerForm.email.data:
+                    try:
+                        validate_email(newstellerForm.email.data)
+                    except EmailNotValidError as e:
+                        response['has_response'] = 1
+                        response['form'] = 'newsteller'
+                        response['response_content'].append(responses['invalid_email'])
+                    
+                return render_template('favorites.html', newstellerForm = newstellerForm, response = response)
+
+    return render_template('favorites.html', newstellerForm = newstellerForm, response = response)
 
 @app.route("/contact/", methods = ['GET', 'POST'])
 def contact():
@@ -342,3 +394,50 @@ def detail():
                 return render_template('detail.html', newstellerForm = newstellerForm, response = response)
 
     return render_template('detail.html', newstellerForm = newstellerForm, response = response)
+
+@app.route("/admin/", methods = ['GET', 'POST'])
+@login_required
+def admin():
+    id = current_user.id
+    if id  == 1:
+        newstellerForm = NewsTellerForm()
+        response = {
+            'has_response': -1,
+            'form' : '',
+            'response_content': []
+        }
+        if request.method == 'POST' and 'newsteller' in request.form:
+                newstellerForm = NewsTellerForm(request.form)
+                if newstellerForm.validate_on_submit():
+                    subscriber = NewsTeller (
+                        full_name = newstellerForm.full_name.data,
+                        email = newstellerForm.email.data,
+                    )
+                    subscriber.save()
+                    response['has_response'] = 0
+                    response['form'] = 'newsteller'
+                    response['response_content'].append(responses['subscribed'])
+                    return render_template('admin.html', newstellerForm = newstellerForm, response = response)
+                
+                else:
+                    if not newstellerForm.full_name.data:
+                        response['has_response'] = 1
+                        response['form'] = 'newsteller'
+                        response['response_content'].append(responses['fname'])
+                    if not newstellerForm.email.data:
+                        response['has_response'] = 1
+                        response['form'] = 'newsteller'
+                        response['response_content'].append(responses['email'])
+                    if newstellerForm.email.data:
+                        try:
+                            validate_email(newstellerForm.email.data)
+                        except EmailNotValidError as e:
+                            response['has_response'] = 1
+                            response['form'] = 'newsteller'
+                            response['response_content'].append(responses['invalid_email'])
+                    return render_template('admin.html', newstellerForm = newstellerForm, response = response)
+                
+        return render_template('admin.html', newstellerForm = newstellerForm, response = response)
+    else:
+        flash("You dont have the necessary permission to visit that page!")
+        return redirect(url_for('home'))
