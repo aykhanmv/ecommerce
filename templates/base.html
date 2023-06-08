@@ -27,37 +27,14 @@
 
 <body>
 
-  {% with messages = get_flashed_messages() %}
-  {% if messages %}
-    {% for message in messages %}
-
-    <div class="alert-container">
-      <div id="flash-div">
-        <label>
-          <input type="checkbox" class="alertCheckbox" autocomplete="off" />
-          <div class="alert warning">
-            <span style="padding-left: 10px;" class="alertClose">X</span>
-            {{ message }}
-            <br class="clear" /></span>
-          </div>
-          <style>
-          </style>
-        </label>
-      </div>
-    </div>
-
-    {% endfor %}
-  {% endif %}
-  {% endwith %}
-
-
   {% include 'header.html' %}
 
   {% block content %}
   {% endblock %}
 
-  {% include 'footer.html' %}
 
+  {% block footer %}
+  {% endblock %}
 </body>
 <!-- JavaScript Libraries -->
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

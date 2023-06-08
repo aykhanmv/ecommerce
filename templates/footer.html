@@ -59,22 +59,22 @@
                 <p class="help-block text-danger"></p>
             </div>
             <div>
-            {% if response['has_response'] == 1 and response['form'] == 'newsteller' %}
-            <div class="alert alert-danger" role="alert">
-                {% for response in response['response_content'] %}
-                <span class="error-message">{{ response }}</span>
-                <br>
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% if response['has_response'] == 0 and response['form'] == 'newsteller' %}
-            <div class="alert alert-success" role="alert">
-                {% for response in response['response_content'] %}
-                <span class="error-message">{{ response }}</span>
-                <br>
-                {% endfor %}
-            </div>
-            {% endif %}
+              {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                  {% for message in messages %}
+                      {% if message.role == 'form-news' %}
+                      <div class="alert alert-{{message.type}}" role="alert">
+
+                          {% for response in message.content %}
+                                  * {{ response }}
+                                  <br>
+                          {% endfor %}
+                        </div>
+
+                      {% endif %}
+                  {% endfor %}
+              {% endif %}
+              {% endwith %}
             <button class="btn btn-primary py-2 px-4" type="submit" name="newsteller" id="sendMessageButton">Subscribe</button>
             </div>
         </form>

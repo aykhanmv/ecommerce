@@ -6,58 +6,34 @@
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  */
 
-.flash-container {
-  position: relative;
-}
-
-#flash-div {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin-right: 20px;
-  margin-top: 220px;
-}
-
-.alert {
-  width: auto;
-  height: auto;
-  line-height: 1.8;
-  border-radius: 5px;
-  cursor: hand;
+.button-68 {
+  appearance: none;
+  backface-visibility: hidden;
+  background-color: #27ae60;
+  border-radius: 8px;
+  border-style: none;
+  box-shadow: rgba(39, 174, 96, .15) 0 4px 9px;
+  box-sizing: border-box;
+  color: #fff;
   cursor: pointer;
-  font-family: sans-serif;
-  font-weight: 400;
-}
-
-.alertCheckbox {
-  display: none;
-}
-
-:checked+.alert {
-  display: none;
-}
-
-.alertText {
-  display: table;
-  margin: 0 auto;
-  text-align: center;
+  display: inline-block;
   font-size: 16px;
-}
-
-.alertClose {
-  float: right;
+  font-weight: 600;
+  letter-spacing: normal;
+  line-height: 1.5;
   padding-top: 5px;
-  font-size: 10px;
-}
-
-.clear {
-  clear: both;
-}
-
-.warning {
-  background-color: #fdf7df;
-  border: 1px solid #FEEC6F;
-  color: #C9971C;
+  padding-bottom: 5px;
+  outline: none;
+  overflow: hidden;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  transition: all .3s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: top;
+  white-space: nowrap;
 }
 
 :root {

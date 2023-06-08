@@ -31,31 +31,45 @@
                     </tr>
                 </thead>
                 <tbody class="align-middle">
+                    {% for favorite in all_favorites %}
                     <tr>
-                        <td class="align-middle"><img src="{{ url_for ( 'static', filename = 'img/pr-1.webp') }}" alt="" style="width: 50px;"> Colorful Stylish
-                            Shirt 1</td>
-                        <td class="align-middle">$150</td>
-                        <td class="align-middle"><button class="btn btn-sm btn-primary"><i
-                                    class="fa fa-times"></i></button></td>
+                        <td class="align-middle"> 
+                            <a href="{{ url_for('detail', id = favorite.product.id ) }}">
+                                <img src="{{ url_for('static', filename = 'media/' + favorite.product.cover_image) }}" alt="" style="width: 50px;"> 
+                            </a>
+                            <a href="{{ url_for('detail', id = favorite.product.id ) }}">
+                                {{ favorite.product.name }}
+                            </a>
+                        </td>
+
+
+
+                        <td class="align-middle">{% if favorite.product.id in discount_mapping %}
+                            {% set discount = discount_mapping[favorite.product.id] %}
+            
+                              <h6>{{ favorite.product.price - (favorite.product.price * discount.percent / 100) }}</h6>
+                              <h6 class="text-muted ml-2"><del>{{ favorite.product.price }}</del></h6>
+                            {% else %}
+                            <h6>{{ favorite.product.price }}</h6>
+                            {% endif %}</td>
+
+
+                        <td class="align-middle">
+                            <a href="{{ url_for('removefavorite', productid = favorite.product_id) }}">
+                                <button class="btn btn-sm btn-primary"><i class="fa fa-times"></i></button>
+                            </a>
+                        </td>
                     </tr>
-                    <tr>
-                        <td class="align-middle"><img src="{{ url_for ( 'static', filename = 'img/pr-3.webp') }}" alt="" style="width: 50px;"> Colorful Stylish
-                            Shirt 2</td>
-                        <td class="align-middle">$140</td>
-                        <td class="align-middle"><button class="btn btn-sm btn-primary"><i
-                                    class="fa fa-times"></i></button></td>
-                    </tr>
-                    <tr>
-                        <td class="align-middle"><img src="{{ url_for ( 'static', filename = 'img/pr-2.webp') }}" alt="" style="width: 50px;"> Colorful Stylish
-                            Shirt 3</td>
-                        <td class="align-middle">$350</td>
-                        <td class="align-middle"><button class="btn btn-sm btn-primary"><i
-                                    class="fa fa-times"></i></button></td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 <!-- Cart End -->
+
+{% endblock %}
+
+{% block footer %}
+{% include 'footer.html' %}
 {% endblock %}
